@@ -7,14 +7,26 @@
 namespace ompl {
 namespace mav {
 
-// R3 for position. Other planners take care of orientation.
-typedef base::RealVectorStateSpace StateSpace;
+// // R3 for position. Other planners take care of orientation.
+// typedef base::RealVectorStateSpace StateSpace;
+
+// inline Eigen::Vector3d omplToEigen(const base::State* state) {
+//   const mav::StateSpace::StateType* derived =
+//       static_cast<const mav::StateSpace::StateType*>(state);
+//   Eigen::Vector3d eigen_state(derived->values[0], derived->values[1],
+//                               derived->values[2]);
+
+//   return eigen_state;
+// }
+
+typedef base::SE3StateSpace StateSpace;
 
 inline Eigen::Vector3d omplToEigen(const base::State* state) {
   const mav::StateSpace::StateType* derived =
       static_cast<const mav::StateSpace::StateType*>(state);
-  Eigen::Vector3d eigen_state(derived->values[0], derived->values[1],
-                              derived->values[2]);
+  Eigen::Vector3d eigen_state(derived->getX(),
+                              derived->getY(), 
+                              derived->getZ());
 
   return eigen_state;
 }

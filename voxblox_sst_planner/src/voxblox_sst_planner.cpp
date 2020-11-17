@@ -29,7 +29,6 @@ VoxbloxSstPlanner::VoxbloxSstPlanner(const ros::NodeHandle& nh,
   nh_private_.param("visualize", visualize_, visualize_);
   nh_private_.param("frame_id", frame_id_, frame_id_);
   nh_private_.param("do_smoothing", do_smoothing_, do_smoothing_);
-
   path_marker_pub_ =
       nh_private_.advertise<visualization_msgs::MarkerArray>("path", 1, true);
   polynomial_trajectory_pub_ =

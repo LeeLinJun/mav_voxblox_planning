@@ -1,4 +1,5 @@
 #include "voxblox_sst_planner/voxblox_ompl_sst.h"
+#include <cstdio>
 
 namespace mav_planning {
 
@@ -11,10 +12,23 @@ VoxbloxOmplSst::VoxbloxOmplSst(const ros::NodeHandle& nh,
       simplify_solution_(true),
       robot_radius_(1.0),
       verbose_(false),
-      optimistic_(true),
+      optimistic_(false),
       trust_approx_solution_(false),
       lower_bound_(Eigen::Vector3d::Zero()),
-      upper_bound_(Eigen::Vector3d::Zero()) {
+      upper_bound_(Eigen::Vector3d::Zero()),
+      minControlDuration_(20),
+      maxControlDuration_(100),
+      stepSize_(0.02),
+      goalRadius_(2.5),
+      
+      minRotateControl_(-1),
+      maxRotateControl_(1),
+      minZControl_(-12),
+      maxZControl_(-8),
+      minVel_(-1),
+      maxVel_(1),
+      minOmega_(-1),
+      maxOmega_(1) {
   nh_private_.param("robot_radius", robot_radius_, robot_radius_);
   nh_private_.param("num_seconds_to_plan", num_seconds_to_plan_,
                     num_seconds_to_plan_);
@@ -22,6 +36,25 @@ VoxbloxOmplSst::VoxbloxOmplSst(const ros::NodeHandle& nh,
                     simplify_solution_);
   nh_private_.param("trust_approx_solution", trust_approx_solution_,
                     trust_approx_solution_);
+  nh_private_.param("verbose", verbose_, verbose_);
+
+  nh_private_.param("minControlDuration", minControlDuration_, 
+                    minControlDuration_);
+  nh_private_.param("maxControlDuration", maxControlDuration_,
+                    maxControlDuration_);
+  nh_private_.param("stepSize", stepSize_, stepSize_);
+  nh_private_.param("goalRadius", goalRadius_, goalRadius_);
+
+  nh_private_.param("minRotateControl", minRotateControl_, minRotateControl_);
+  nh_private_.param("maxRotateControl", maxRotateControl_, maxRotateControl_);
+  nh_private_.param("minZControl", minZControl_, minZControl_);
+  nh_private_.param("maxZControl", maxZControl_, maxZControl_);
+  nh_private_.param("minVel", minVel_, minVel_);
+  nh_private_.param("maxVel", maxVel_, maxVel_);
+  nh_private_.param("minOmega", minOmega_, minOmega_);
+  nh_private_.param("maxOmega", maxOmega_, maxOmega_);
+
+
 }
 
 void VoxbloxOmplSst::setBounds(const Eigen::Vector3d& lower_bound,
@@ -53,34 +86,55 @@ void VoxbloxOmplSst::setupProblem() {
     problem_setup_.setEsdfVoxbloxCollisionChecking(robot_radius_, esdf_layer_);
   }
   problem_setup_.setDefaultObjective();
-  // if (planner_type_ == kRrtConnect) {
-  //   problem_setup_.setRrtConnect();
-  // } else if (planner_type_ == kRrtStar) {
-  //   problem_setup_.setRrtStar();
-  // } else if (planner_type_ == kInformedRrtStar) {
-  //   problem_setup_.setInformedRrtStar();
-  // } else if (planner_type_ == kPrm) {
-  //   problem_setup_.setPrm();
-  // } else if (planner_type_ == kBitStar) {
-  //   problem_setup_.setBitStar();
-  // } else {
-    problem_setup_.setDefaultPlanner();
-  // }
+
+  problem_setup_.setDefaultPlanner();
 
   if (lower_bound_ != upper_bound_) {
-    ompl::base::RealVectorBounds bounds(3);
-    bounds.setLow(0, lower_bound_.x());
-    bounds.setLow(1, lower_bound_.y());
-    bounds.setLow(2, lower_bound_.z());
+    ompl::base::RealVectorBounds r3bounds(3), velbounds(6), controlbounds(4);
+    printf("Map Lower Bounds: %f\t%f\t%f\n", 
+           lower_bound_.x(),
+           lower_bound_.y(),
+           lower_bound_.z());
+    printf("Map Upper Bounds: %f\t%f\t%f\n", 
+           upper_bound_.x(),
+           upper_bound_.y(),
+           upper_bound_.z());
 
-    bounds.setHigh(0, upper_bound_.x());
-    bounds.setHigh(1, upper_bound_.y());
-    bounds.setHigh(2, upper_bound_.z());
+    r3bounds.setLow(0, lower_bound_.x());
+    r3bounds.setHigh(0, upper_bound_.x());
+    r3bounds.setLow(1, lower_bound_.y());
+    r3bounds.setHigh(1, upper_bound_.y());
 
-    // Define start and goal positions.
-    problem_setup_.getGeometricComponentStateSpace()
-        ->as<ompl::mav::StateSpace>()
-        ->setBounds(bounds);
+    r3bounds.setLow(2, 0.0);
+    r3bounds.setHigh(2, 2.5);
+    
+   
+    problem_setup_.getStateSpace()->as<ompl::base::CompoundStateSpace>()->as<ompl::base::SE3StateSpace>(0)->setBounds(r3bounds);
+
+    velbounds.setLow(0, minVel_);
+    velbounds.setHigh(0, maxVel_);
+    velbounds.setLow(1, minVel_);
+    velbounds.setHigh(1, maxVel_);
+    velbounds.setLow(2, minVel_);
+    velbounds.setHigh(2, maxVel_);
+
+    velbounds.setLow(3, minOmega_);
+    velbounds.setHigh(3, maxOmega_);
+    velbounds.setLow(4, minOmega_);
+    velbounds.setHigh(4, maxOmega_);
+    velbounds.setLow(5, minOmega_);
+    velbounds.setHigh(5, maxOmega_);
+
+    problem_setup_.getStateSpace()->as<ompl::base::CompoundStateSpace>()->as<ompl::base::RealVectorStateSpace>(1)->setBounds(velbounds);
+
+    controlbounds.setLow(minRotateControl_);
+    controlbounds.setHigh(maxRotateControl_);
+    controlbounds.setLow(0, minZControl_);
+    controlbounds.setHigh(0, maxZControl_);
+    problem_setup_.getControlSpace()->as<ompl::control::RealVectorControlSpace>()->setBounds(controlbounds);
+    problem_setup_.getSpaceInformation()->setMinMaxControlDuration(minControlDuration_, maxControlDuration_);
+    problem_setup_.getSpaceInformation()->setPropagationStepSize(stepSize_);
+
   }
 
   // This is a fraction of the space extent! Not actual metric units. For
@@ -137,45 +191,36 @@ void VoxbloxOmplSst::setupFromStartAndGoal(
     problem_setup_.clear();
   // }
 
-  ompl::base::ScopedState<ompl::mav::StateSpace> start_ompl(
-      problem_setup_.getSpaceInformation());
-  ompl::base::ScopedState<ompl::mav::StateSpace> goal_ompl(
-      problem_setup_.getSpaceInformation());
+  // ompl::base::ScopedState<ompl::mav::StateSpace> start_ompl(
+  //     problem_setup_.getSpaceInformation());
+  // ompl::base::ScopedState<ompl::mav::StateSpace> goal_ompl(
+  //     problem_setup_.getSpaceInformation());
+    ompl::base::ScopedState<ompl::mav::StateSpace> start_ompl(
+      problem_setup_.getGeometricComponentStateSpace());
+    ompl::base::ScopedState<ompl::mav::StateSpace> goal_ompl(
+      problem_setup_.getGeometricComponentStateSpace());
+    start_ompl->setX(start.position_W.x());
+    start_ompl->setY(start.position_W.y());
+    start_ompl->setZ(start.position_W.z());
+    start_ompl->rotation().setIdentity();
 
-  start_ompl->values[0] = start.position_W.x();
-  start_ompl->values[1] = start.position_W.y();
-  start_ompl->values[2] = start.position_W.z();
+    goal_ompl->setX(goal.position_W.x());
+    goal_ompl->setY(goal.position_W.y());
+    goal_ompl->setZ(goal.position_W.z());
+    goal_ompl->rotation().setIdentity();
+ 
 
-  goal_ompl->values[0] = goal.position_W.x();
-  goal_ompl->values[1] = goal.position_W.y();
-  goal_ompl->values[2] = goal.position_W.z();
-  problem_setup_.setStartAndGoalStates(start_ompl, goal_ompl);
-  problem_setup_.setup();
-  if (verbose_) {
-    problem_setup_.print();
-  }
+    problem_setup_.setStartAndGoalStates(
+      problem_setup_.getFullStateFromGeometricComponent(start_ompl),
+      problem_setup_.getFullStateFromGeometricComponent(goal_ompl),
+      goalRadius_);
+    problem_setup_.setup();
+    if (verbose_) {
+      problem_setup_.print();
+    }
+
 }
 
-// void VoxbloxOmplSst::solutionPathToTrajectoryPoints(
-//     ompl::geometric::PathGeometric& path,
-//     mav_msgs::EigenTrajectoryPointVector* trajectory_points) const {
-//   CHECK_NOTNULL(trajectory_points);
-//   trajectory_points->clear();
-//   trajectory_points->reserve(path.getStateCount());
-
-//   std::vector<ompl::base::State*>& state_vector = path.getStates();
-
-//   for (ompl::base::State* state_ptr : state_vector) {
-//     Eigen::Vector3d mav_position(
-//         state_ptr->as<ompl::mav::StateSpace::StateType>()->values[0],
-//         state_ptr->as<ompl::mav::StateSpace::StateType>()->values[1],
-//         state_ptr->as<ompl::mav::StateSpace::StateType>()->values[2]);
-
-//     mav_msgs::EigenTrajectoryPoint mav_trajectory_point;
-//     mav_trajectory_point.position_W = mav_position;
-//     trajectory_points->emplace_back(mav_trajectory_point);
-//   }
-// }
 void VoxbloxOmplSst::solutionPathToTrajectoryPoints(
     ompl::control::PathControl& path,
     mav_msgs::EigenTrajectoryPointVector* trajectory_points) const {
@@ -186,11 +231,14 @@ void VoxbloxOmplSst::solutionPathToTrajectoryPoints(
   std::vector<ompl::base::State*>& state_vector = path.getStates();
 
   for (ompl::base::State* state_ptr : state_vector) {
+    // printf("%f\t%f\t%f\n",
+    //   state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>()->getX(),
+    //   state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>()->getY(),
+    //   state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>()->getZ());
     Eigen::Vector3d mav_position(
-        state_ptr->as<ompl::mav::StateSpace::StateType>()->values[0],
-        state_ptr->as<ompl::mav::StateSpace::StateType>()->values[1],
-        state_ptr->as<ompl::mav::StateSpace::StateType>()->values[2]);
-
+      state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->getX(),
+      state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->getY(),
+      state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->getZ());
     mav_msgs::EigenTrajectoryPoint mav_trajectory_point;
     mav_trajectory_point.position_W = mav_position;
     trajectory_points->emplace_back(mav_trajectory_point);
@@ -268,10 +316,9 @@ bool VoxbloxOmplSst::getBestPathTowardGoal(
 
     const ompl::base::State* state_ptr = vertex.getState();
     Eigen::Vector3d mav_position(
-        state_ptr->as<ompl::mav::StateSpace::StateType>()->values[0],
-        state_ptr->as<ompl::mav::StateSpace::StateType>()->values[1],
-        state_ptr->as<ompl::mav::StateSpace::StateType>()->values[2]);
-
+      state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->getX(),
+      state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->getY(),
+      state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->getZ());
     mav_msgs::EigenTrajectoryPoint mav_trajectory_point;
     mav_trajectory_point.position_W = mav_position;
     trajectory_points.emplace_back(mav_trajectory_point);
@@ -297,9 +344,9 @@ bool VoxbloxOmplSst::getBestPathTowardGoal(
 double VoxbloxOmplSst::getDistanceEigenToState(
     const Eigen::Vector3d& eigen, const ompl::base::State* state_ptr) {
   Eigen::Vector3d state_pos(
-      state_ptr->as<ompl::mav::StateSpace::StateType>()->values[0],
-      state_ptr->as<ompl::mav::StateSpace::StateType>()->values[1],
-      state_ptr->as<ompl::mav::StateSpace::StateType>()->values[2]);
+      state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->getX(),
+      state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->getY(),
+      state_ptr->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->getZ());
 
   return (eigen - state_pos).norm();
 }

@@ -37,4 +37,4 @@ target_link_libraries(voxblox_sst_planner_node ${PROJECT_NAME})
 # EXPORT #
 ##########
 cs_install()
-cs_export(LIBRARIES ${OMPL_LIBRARIES})
+cs_export(LIBRARIES ${OMPL_LIBRARIES} ${OMPLAPP_LIBRARIES})

@@ -109,6 +109,22 @@ class VoxbloxOmplSst {
   voxblox::Layer<voxblox::EsdfVoxel>* esdf_layer_;
 
   double voxel_size_;
+
+  int minControlDuration_;
+  int maxControlDuration_;
+  double stepSize_;
+  double goalRadius_;
+
+  double minRotateControl_;
+  double maxRotateControl_;
+  double minZControl_;
+  double maxZControl_;
+  double minVel_;
+  double maxVel_;
+  double minOmega_;
+  double maxOmega_;
+  
+
 };
 
 }  // namespace mav_planning

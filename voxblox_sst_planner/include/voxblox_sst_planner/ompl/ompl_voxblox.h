@@ -206,9 +206,12 @@ class VoxbloxMotionValidator : public base::MotionValidator {
         if (last_valid.first != nullptr) {
           ompl::base::ScopedState<ompl::mav::StateSpace> last_valid_state(
               si_->getStateSpace());
-          last_valid_state->values[0] = pos.x();
-          last_valid_state->values[1] = pos.y();
-          last_valid_state->values[2] = pos.z();
+          // last_valid_state->values[0] = pos.x();
+          // last_valid_state->values[1] = pos.y();
+          // last_valid_state->values[2] = pos.z();
+          last_valid_state->setX(pos.x());
+          last_valid_state->setY(pos.y());
+          last_valid_state->setZ(pos.z());
 
           si_->copyState(last_valid.first, last_valid_state.get());
         }

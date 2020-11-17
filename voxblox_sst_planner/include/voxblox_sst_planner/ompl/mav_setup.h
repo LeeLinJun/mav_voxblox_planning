@@ -36,9 +36,9 @@ class MavSetup : public app::QuadrotorPlanning  {
         new ompl::control::SST(getSpaceInformation())));
   }
 
-  const base::StateSpacePtr& getGeometricComponentStateSpace() const {
-    return getStateSpace();
-  }
+  // const base::StateSpacePtr& getGeometricComponentStateSpace() const {
+  //   return getStateSpace();
+  // }
 
   void setStateValidityCheckingResolution(double resolution) {
     // This is a protected attribute, so need to wrap this function.
