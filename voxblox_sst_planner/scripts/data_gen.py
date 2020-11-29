@@ -92,7 +92,7 @@ def random_start_goal(start_goal_hash=set(), max_xyz=[5, 25, 1.75], min_xyz=[-20
             break
     return start, goal, start_goal_id
 
-def main(n_traj=5):
+def main(n_traj=1000):
     node = StartGoalGenerator()
     start_goal_hash = load_hash_file()
     while len(start_goal_hash) < n_traj:
