@@ -1,5 +1,4 @@
 #include "voxblox_sst_planner/voxblox_ompl_sst.h"
-#include <cstdio>
 
 namespace mav_planning {
 
@@ -80,9 +79,12 @@ void VoxbloxOmplSst::setEsdfLayer(
 void VoxbloxOmplSst::setupProblem() {
   if (optimistic_) {
     CHECK_NOTNULL(tsdf_layer_);
+    ROS_INFO("setting up tsdf layer");
     problem_setup_.setTsdfVoxbloxCollisionChecking(robot_radius_, tsdf_layer_);
   } else {
     CHECK_NOTNULL(esdf_layer_);
+    ROS_INFO("setting up esdf layer");
+
     problem_setup_.setEsdfVoxbloxCollisionChecking(robot_radius_, esdf_layer_);
   }
   problem_setup_.setDefaultObjective();
@@ -91,11 +93,11 @@ void VoxbloxOmplSst::setupProblem() {
 
   if (lower_bound_ != upper_bound_) {
     ompl::base::RealVectorBounds r3bounds(3), velbounds(6), controlbounds(4);
-    printf("Map Lower Bounds: %f\t%f\t%f\n", 
+    ROS_INFO("Map Lower Bounds: %f\t%f\t%f", 
            lower_bound_.x(),
            lower_bound_.y(),
            lower_bound_.z());
-    printf("Map Upper Bounds: %f\t%f\t%f\n", 
+    ROS_INFO("Map Upper Bounds: %f\t%f\t%f", 
            upper_bound_.x(),
            upper_bound_.y(),
            upper_bound_.z());
@@ -106,7 +108,7 @@ void VoxbloxOmplSst::setupProblem() {
     r3bounds.setHigh(1, upper_bound_.y());
 
     r3bounds.setLow(2, 0.0);
-    r3bounds.setHigh(2, 2.5);
+    r3bounds.setHigh(2, 1.75);
     
    
     problem_setup_.getStateSpace()->as<ompl::base::CompoundStateSpace>()->as<ompl::base::SE3StateSpace>(0)->setBounds(r3bounds);
@@ -215,8 +217,10 @@ void VoxbloxOmplSst::setupFromStartAndGoal(
       problem_setup_.getFullStateFromGeometricComponent(goal_ompl),
       goalRadius_);
     problem_setup_.setup();
+
     if (verbose_) {
       problem_setup_.print();
+      // ros::Duration(3).sleep();
     }
 
 }

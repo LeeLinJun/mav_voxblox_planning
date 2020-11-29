@@ -12,13 +12,7 @@ namespace mav_planning {
 class VoxbloxOmplSst {
  public:
   enum RrtPlannerType {
-    kRrtConnect = 0,
-    kRrtStar,
-    kInformedRrtStar,
-    kBitStar,
-    kPrm,
-    kSst
-
+    kSst = 0
   };
 
   VoxbloxOmplSst(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);

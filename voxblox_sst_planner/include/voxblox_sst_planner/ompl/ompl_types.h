@@ -21,12 +21,13 @@ namespace mav {
 
 typedef base::SE3StateSpace StateSpace;
 
-inline Eigen::Vector3d omplToEigen(const base::State* state) {
-  const mav::StateSpace::StateType* derived =
-      static_cast<const mav::StateSpace::StateType*>(state);
-  Eigen::Vector3d eigen_state(derived->getX(),
-                              derived->getY(), 
-                              derived->getZ());
+inline Eigen::Vector3d omplToEigen(const base::State* state_ptr) {
+  // const mav::StateSpace::StateType* derived =
+  //     static_cast<const mav::StateSpace::StateType*>(state);
+
+  Eigen::Vector3d eigen_state(state_ptr->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getX(),
+                              state_ptr->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getY(),
+                              state_ptr->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getZ());
 
   return eigen_state;
 }

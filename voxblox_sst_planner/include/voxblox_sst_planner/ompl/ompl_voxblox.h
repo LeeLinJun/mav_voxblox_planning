@@ -2,6 +2,7 @@
 #define VOXBLOX_SST_PLANNER_OMPL_OMPL_VOXBLOX_H_
 
 #include <ompl/base/StateValidityChecker.h>
+#include <ompl/base/spaces/SO3StateSpace.h>
 
 #include <voxblox/core/esdf_map.h>
 #include <voxblox/core/tsdf_map.h>
@@ -26,6 +27,10 @@ class VoxbloxValidityChecker : public base::StateValidityChecker {
   }
 
   virtual bool isValid(const base::State* state) const {
+    // OMPL_INFORM("robot state: %f\t%f\t%f\n",
+    //   state->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getX(),
+    //   state->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getY(),
+    //   state->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getZ());
     Eigen::Vector3d robot_position = omplToEigen(state);
     if (!si_->satisfiesBounds(state)) {
       return false;
@@ -146,8 +151,11 @@ class EsdfVoxbloxValidityChecker
     voxblox::EsdfVoxel* voxel = layer_->getVoxelPtrByGlobalIndex(global_index);
 
     if (voxel == nullptr) {
+      // OMPL_INFORM("null voxel\t");
       return true;
     }
+    // OMPL_INFORM("robot_r:%f\tdis:%f\t", robot_radius_, voxel->distance);
+
     return robot_radius_ >= voxel->distance;
   }
 
@@ -182,6 +190,22 @@ class VoxbloxMotionValidator : public base::MotionValidator {
                            std::pair<base::State*, double>& last_valid) const {
     Eigen::Vector3d start = omplToEigen(s1);
     Eigen::Vector3d goal = omplToEigen(s2);
+    // OMPL_INFORM("origin:%f\t%f\t%f\t\tstart:%f\t%f\t%f\t",
+    //   start.x(),
+    //   start.y(),
+    //   start.z(),
+    //   goal.x(),
+    //   goal.y(),
+    //   goal.z());
+    // OMPL_INFORM("origin:%f\t%f\t%f\t%f\t%f\t%f\t%f\n",
+    //   s1->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getX(),
+    //   s1->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getY(),
+    //   s1->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getZ(),
+    //   s1->as<base::CompoundStateSpace::StateType>()->as<base::SO3StateSpace::StateType>(1)->x,
+    //   s1->as<base::CompoundStateSpace::StateType>()->as<base::SO3StateSpace::StateType>(1)->y,
+    //   s1->as<base::CompoundStateSpace::StateType>()->as<base::SO3StateSpace::StateType>(1)->z,
+    //   s1->as<base::CompoundStateSpace::StateType>()->as<base::SO3StateSpace::StateType>(1)->w);
+      
     double voxel_size = validity_checker_->voxel_size();
 
     voxblox::Point start_scaled, goal_scaled;
@@ -201,22 +225,20 @@ class VoxbloxMotionValidator : public base::MotionValidator {
       Eigen::Vector3d pos = global_index.cast<double>() * voxel_size;
       bool collision =
           validity_checker_->checkCollisionWithRobotAtVoxel(global_index);
+      
+      // OMPL_INFORM("%d\n",  collision);
 
       if (collision) {
-        if (last_valid.first != nullptr) {
-          ompl::base::ScopedState<ompl::mav::StateSpace> last_valid_state(
-              si_->getStateSpace());
-          // last_valid_state->values[0] = pos.x();
-          // last_valid_state->values[1] = pos.y();
-          // last_valid_state->values[2] = pos.z();
-          last_valid_state->setX(pos.x());
-          last_valid_state->setY(pos.y());
-          last_valid_state->setZ(pos.z());
+        // if (last_valid.first != nullptr) {
+        //   ompl::base::ScopedState<ompl::mav::StateSpace> last_valid_state(
+        //       si_->getStateSpace());
+        //   last_valid_state->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->setX(pos.x());
+        //   last_valid_state->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->setY(pos.y());
+        //   last_valid_state->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->setZ(pos.z());
+        //   si_->copyState(last_valid.first, last_valid_state.get());
+        // }
 
-          si_->copyState(last_valid.first, last_valid_state.get());
-        }
-
-        last_valid.second = static_cast<double>(i / indices.size());
+        // last_valid.second = static_cast<double>(i / indices.size());
         return false;
       }
     }

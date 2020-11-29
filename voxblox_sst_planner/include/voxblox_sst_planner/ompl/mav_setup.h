@@ -21,6 +21,16 @@ class MavSetup : public app::QuadrotorPlanning  {
  public:
   MavSetup() : app::QuadrotorPlanning() {}
 
+  void setup() override
+  {
+    inferEnvironmentBounds();
+
+    inferProblemDefinitionBounds();
+
+    getStateSpace()->setup();
+    ompl::control::SimpleSetup::setup();
+  }
+
   // Get some defaults.
   void setDefaultObjective() {
     getProblemDefinition()->setOptimizationObjective(
