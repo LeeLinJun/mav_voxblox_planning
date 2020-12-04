@@ -54,7 +54,7 @@ class StartGoalGenerator:
         msg.pose.orientation.w = orientation[3]
         return msg
 
-    def requestPlannerService(self, start, goal, start_goal_hash, start_ori=[0, 0, 0, 1], goal_ori=[0, 0, 0, 1]):
+    def requestPlannerService(self, start, goal, start_goal_hash, start_ori=[0, 0, 0, 1], goal_ori=[0, 0, 0, 1], save_traj=False):
         rospy.wait_for_service(self.service_name)
         request_planner_service = rospy.ServiceProxy(self.service_name, PlannerService)
         start_pose = self.state_to_posestamped(start, start_ori)
@@ -70,10 +70,11 @@ class StartGoalGenerator:
                 # print("success")
                 rospy.sleep(0.1)
             #    print(self.data)
-                np.save("data/traj_{}.npy".format(str(start_goal_hash)[1:-1].replace(", ", "_")),
-                        self.data)
-                np.save("data/start_goal_{}.npy".format(str(start_goal_hash)[1:-1].replace(", ", "_")),
-                        np.concatenate((start, goal), axis=0))
+                if save_traj:
+                    np.save("data/traj_{}.npy".format(str(start_goal_hash)[1:-1].replace(", ", "_")),
+                            self.data)
+                    np.save("data/start_goal_{}.npy".format(str(start_goal_hash)[1:-1].replace(", ", "_")),
+                            np.concatenate((start, goal), axis=0))
                 return True
         except:
             # print("Failed")

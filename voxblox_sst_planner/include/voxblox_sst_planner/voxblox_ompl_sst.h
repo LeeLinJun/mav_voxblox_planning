@@ -117,6 +117,9 @@ class VoxbloxOmplSst {
   double maxVel_;
   double minOmega_;
   double maxOmega_;
+
+  bool savePath_;
+  std::string saveDir_;
   
 
 };

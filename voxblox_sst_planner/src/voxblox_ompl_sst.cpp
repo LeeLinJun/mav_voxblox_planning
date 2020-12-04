@@ -1,4 +1,5 @@
 #include "voxblox_sst_planner/voxblox_ompl_sst.h"
+#include <iostream>
 
 namespace mav_planning {
 
@@ -27,7 +28,9 @@ VoxbloxOmplSst::VoxbloxOmplSst(const ros::NodeHandle& nh,
       minVel_(-1),
       maxVel_(1),
       minOmega_(-1),
-      maxOmega_(1) {
+      maxOmega_(1),
+      savePath_(false),
+      saveDir_("/root/catkin_ws/data") {
   nh_private_.param("robot_radius", robot_radius_, robot_radius_);
   nh_private_.param("num_seconds_to_plan", num_seconds_to_plan_,
                     num_seconds_to_plan_);
@@ -51,7 +54,8 @@ VoxbloxOmplSst::VoxbloxOmplSst(const ros::NodeHandle& nh,
   nh_private_.param("minVel", minVel_, minVel_);
   nh_private_.param("maxVel", maxVel_, maxVel_);
   nh_private_.param("minOmega", minOmega_, minOmega_);
-  nh_private_.param("maxOmega", maxOmega_, maxOmega_);
+  nh_private_.param("savePath", savePath_, savePath_);
+  nh_private_.param("saveDir", saveDir_, saveDir_);
 
 
 }
@@ -170,6 +174,21 @@ bool VoxbloxOmplSst::getPathBetweenWaypoints(
       if (verbose_) {
         problem_setup_.getSolutionPath().printAsMatrix(std::cout);
       }
+
+      // For save path:
+      if(savePath_){
+        std::cout << "Saving to " + saveDir_ << std::endl;
+        std::ofstream traj_out(saveDir_ + "/traj_" + 
+          std::to_string((int)((start.position_W.x() - (-20))/0.1)) + "_" +
+          std::to_string((int)((start.position_W.y() - (-5))/0.1)) + "_" +
+          std::to_string((int)((start.position_W.z())/0.1)) + "_" +
+          std::to_string((int)((goal.position_W.x() - (-20))/0.1)) + "_" +
+          std::to_string((int)((goal.position_W.y() - (-5))/0.1)) + "_" +
+          std::to_string((int)((goal.position_W.z())/0.1)) + ".txt");
+        problem_setup_.getSolutionPath().printAsMatrix(traj_out);
+        traj_out.close();
+      }
+      
     } else {
       ROS_WARN("OMPL planning failed.");
       return false;
