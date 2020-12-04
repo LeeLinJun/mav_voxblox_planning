@@ -80,7 +80,7 @@ class StartGoalGenerator:
             return False
 
 
-def random_start_goal(start_goal_hash=set(), max_xyz=[5, 25, 1.75], min_xyz=[-20, -5, 0], min_distance=5, max_distance=15):
+def random_start_goal(start_goal_hash=set(), max_xyz=[5, 25, 1.75], min_xyz=[-20, -5, 0], min_distance=5, max_distance=20):
     def pose_to_hash(pose, min_xyz, voxel_size=0.1):
         return list(((pose - min_xyz) / voxel_size).astype(int))
     while True:
@@ -100,6 +100,7 @@ def main(n_traj=1000):
         start, goal, start_goal_id = random_start_goal(start_goal_hash) # s_g_id is a list
         if node.requestPlannerService(start, goal, start_goal_id):
             start_goal_hash.add(tuple(start_goal_id))
+            start_goal_hash = start_goal_hash.union(start_goal_hash, load_hash_file())
             save_hash_file(start_goal_hash)
             print("Current #traj: {}".format(len(start_goal_hash)))
 
