@@ -33,3 +33,9 @@
 
 # I own a mac
 .DS_Store
+
+# ignore downloaded maps
+voxblox_sst_planner/maps/**
+
+#ignore python related caches
+**/.ipynb_checkpoints/

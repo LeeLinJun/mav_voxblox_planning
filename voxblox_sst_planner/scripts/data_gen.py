@@ -81,7 +81,7 @@ class StartGoalGenerator:
             return False
 
 
-def random_start_goal(start_goal_hash=set(), max_xyz=[5, 25, 1.75], min_xyz=[-20, -5, 0], min_distance=5, max_distance=20):
+def random_start_goal(start_goal_hash=set(), max_xyz=[5, 25, 1.75], min_xyz=[-20, -5, 0], min_distance=5, max_distance=15):
     def pose_to_hash(pose, min_xyz, voxel_size=0.1):
         return list(((pose - min_xyz) / voxel_size).astype(int))
     while True:
