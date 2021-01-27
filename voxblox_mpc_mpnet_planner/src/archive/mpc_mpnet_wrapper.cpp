@@ -18,7 +18,8 @@
 #include "networks/mpnet.hpp"
 #include "networks/mpnet_cost.hpp"
 
-#include "motion_planners/deep_smp_mpc_sst.hpp"
+// #include "motion_planners/deep_smp_mpc_sst.hpp"
+#include "motion_planners/mpc_mpnet.hpp"
 
 #include "cstdio"
 
@@ -30,7 +31,7 @@ namespace pybind11 {
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-class __attribute__ ((visibility ("hidden"))) DSSTMPCWrapper{
+class __attribute__ ((visibility ("hidden"))) MPCMPNetWrapper{
     
 public:
 
@@ -39,7 +40,7 @@ public:
 	 * @details Python wrapper of DSSTMPC planner Constructor
 	 *
 	 */
-    DSSTMPCWrapper(
+    MPCMPNetWrapper(
             std::string system_string,
             std::string solver_type,
             const py::safe_array<double> &start_state_array,
@@ -64,78 +65,120 @@ public:
         system_type = system_string;
         auto start_state = start_state_array.unchecked<1>();
         auto goal_state = goal_state_array.unchecked<1>();
-        auto py_obs_list = obs_list_array.unchecked<2>();
+        // auto py_obs_list = obs_list_array.unchecked<2>();
         auto obs_voxel_data = obs_voxel_array.unchecked<1>();
-        std::vector<float> obs_vec;
-        if (obs_list_array.shape()[0] == 0) {
-            throw std::runtime_error("Should contain at least one obstacles.");
-        }
-        if (width <= 0.) {
-            throw std::runtime_error("obstacle width should be non-negative.");
-        }
+        // std::vector<float> obs_vec;
+        // if (obs_list_array.shape()[0] == 0) {
+        //     throw std::runtime_error("Should contain at least one obstacles.");
+        // }
+        // if (width <= 0.) {
+        //     throw std::runtime_error("obstacle width should be non-negative.");
+        // }
 
-        if (system_type == "acrobot_obs" || system_type == "cartpole_obs" || system_type == "car_obs"){
-            // Convert obs_pixels to tensor
+        // if (system_type == "acrobot_obs" || system_type == "cartpole_obs" || system_type == "car_obs"){
+        //     // Convert obs_pixels to tensor
             
-            if (obs_list_array.shape()[1] != 2) {
-                throw std::runtime_error("Shape of the obstacle input should be (N,2).");
-            }
+        //     if (obs_list_array.shape()[1] != 2) {
+        //         throw std::runtime_error("Shape of the obstacle input should be (N,2).");
+        //     }
             
-            // initialize the array
-            obs_list = std::vector<std::vector<double>>(obs_list_array.shape()[0], std::vector<double>(2, 0.0));
-            for (unsigned int i = 0; i < obs_list.size(); i++) {
-                obs_list[i][0] = py_obs_list(i, 0);
-                obs_list[i][1] = py_obs_list(i, 1);
-            }
+        //     // initialize the array
+        //     obs_list = std::vector<std::vector<double>>(obs_list_array.shape()[0], std::vector<double>(2, 0.0));
+        //     for (unsigned int i = 0; i < obs_list.size(); i++) {
+        //         obs_list[i][0] = py_obs_list(i, 0);
+        //         obs_list[i][1] = py_obs_list(i, 1);
+        //     }
 
-            for (unsigned i = 0; i < obs_voxel_data.shape(0); i++)
-            {
-                obs_vec.push_back(float(obs_voxel_data(i)));
-            }
-            obs_tensor = torch::from_blob(obs_vec.data(), {1, 1, 32, 32}).to(torch::Device(device_id));
+        //     for (unsigned i = 0; i < obs_voxel_data.shape(0); i++)
+        //     {
+        //         obs_vec.push_back(float(obs_voxel_data(i)));
+        //     }
+        //     obs_tensor = torch::from_blob(obs_vec.data(), {1, 1, 32, 32}).to(torch::Device(device_id));
 
             
-        } else if (system_type == "quadrotor_obs") {
-            if (obs_list_array.shape()[1] != 3) {
-                throw std::runtime_error("Shape of the obstacle input should be (N,3).");
-            }
-            // Convert obs_voxels to tensors
-            // printf("%d, %d", obs_list_array.shape()[0], obs_list_array.shape()[1]);
-            obs_list = std::vector<std::vector<double>>(obs_list_array.shape()[0], std::vector<double>(3, 0.0));
-            for (unsigned int i = 0; i < obs_list.size(); i++) {
-                obs_list[i][0] = py_obs_list(i, 0);
-                obs_list[i][1] = py_obs_list(i, 1);
-                obs_list[i][2] = py_obs_list(i, 2);
-                // printf("%f, %f, %f\n", obs_list[i][0], obs_list[i][1], obs_list[i][2]);
-            }
+        // } else if (system_type == "quadrotor_obs") {
+        //     if (obs_list_array.shape()[1] != 3) {
+        //         throw std::runtime_error("Shape of the obstacle input should be (N,3).");
+        //     }
+        //     // Convert obs_voxels to tensors
+        //     // printf("%d, %d", obs_list_array.shape()[0], obs_list_array.shape()[1]);
+        //     obs_list = std::vector<std::vector<double>>(obs_list_array.shape()[0], std::vector<double>(3, 0.0));
+        //     for (unsigned int i = 0; i < obs_list.size(); i++) {
+        //         obs_list[i][0] = py_obs_list(i, 0);
+        //         obs_list[i][1] = py_obs_list(i, 1);
+        //         obs_list[i][2] = py_obs_list(i, 2);
+        //         // printf("%f, %f, %f\n", obs_list[i][0], obs_list[i][1], obs_list[i][2]);
+        //     }
             
-            // TODO: pass from para
-            for (unsigned i = 0; i < obs_voxel_data.shape(0); i++)
-            {
-                obs_vec.push_back(float(obs_voxel_data(i)));
-            }
-            obs_tensor = torch::from_blob(obs_vec.data(), {1, 32, 32, 32}).to(torch::Device(device_id));
+        //     // TODO: pass from para
+        //     for (unsigned i = 0; i < obs_voxel_data.shape(0); i++)
+        //     {
+        //         obs_vec.push_back(float(obs_voxel_data(i)));
+        //     }
+        //     obs_tensor = torch::from_blob(obs_vec.data(), {1, 32, 32, 32}).to(torch::Device(device_id));
 
-            // obs_tensor = torch::zeros({1,32,32,32}).to(torch::Device(device_id));
+        //     // obs_tensor = torch::zeros({1,32,32,32}).to(torch::Device(device_id));
+        // } else 
+        if (system_type == "quadrotor_voxblox"){
+            ros::init(argc, argv, "voxblox_mpc_mpnet_planner");
+            google::InitGoogleLogging(argv[0]);
+            google::InstallFailureSignalHandler();
+
+            ros::NodeHandle nh("");
+            ros::NodeHandle nh_private("~");
+            FLAGS_alsologtostderr = true;
+
+
+            std::string input_filepath = "/root/catkin_ws/src/mav_voxblox_planning/voxblox_sst_planner/maps/machine_hall/voxblox/rs_esdf_0.10.voxblox";
+            voxblox::EsdfServer voxblox_server_(nh, nh_private);
+            
+            voxblox::EsdfMap::Ptr esdf_map_ = voxblox_server_.getEsdfMapPtr();
+            CHECK(esdf_map_);
+            voxblox::TsdfMap::Ptr tsdf_map_ = voxblox_server_.getTsdfMapPtr();
+            CHECK(tsdf_map_);
+            
+            if (!input_filepath.empty()) {
+                // Verify that the map has an ESDF layer, otherwise generate it.
+                if (!voxblox_server_.loadMap(input_filepath)) {
+                ROS_ERROR("Couldn't load ESDF map!");
+
+                // Check if the TSDF layer is non-empty...
+                if (tsdf_map_->getTsdfLayerPtr()->getNumberOfAllocatedBlocks() > 0) {
+                    ROS_INFO("Generating ESDF layer from TSDF.");
+                    // If so, generate the ESDF layer!
+
+                    const bool full_euclidean_distance = true;
+                    voxblox_server_.updateEsdfBatch(full_euclidean_distance);
+                } else {
+                    ROS_ERROR("TSDF map also empty! Check voxel size!");
+                }
+                }
+            }
         } else {
+
             throw std::runtime_error("undefined system");
         }      
        
-        if (system_type == "acrobot_obs"){
-            system = new two_link_acrobot_obs_t(obs_list, width);
-            distance_computer = two_link_acrobot_obs_t::distance;
+        // if (system_type == "acrobot_obs"){
+        //     system = new two_link_acrobot_obs_t(obs_list, width);
+        //     distance_computer = two_link_acrobot_obs_t::distance;
 
-        } else if (system_type == "cartpole_obs"){
-            system = new cart_pole_obs_t(obs_list, width);
-            distance_computer = cart_pole_obs_t::distance;
+        // } else if (system_type == "cartpole_obs"){
+        //     system = new cart_pole_obs_t(obs_list, width);
+        //     distance_computer = cart_pole_obs_t::distance;
+        // } else if (system_type == "car_obs"){
+        //     system = new car_obs_t(obs_list, width);
+        //     distance_computer = car_obs_t::distance;
 
-        } else if (system_type == "quadrotor_obs") {
-            system = new quadrotor_obs_t(obs_list, width);
-            distance_computer = quadrotor_obs_t::distance;
-        } else if (system_type == "car_obs"){
-            system = new car_obs_t(obs_list, width);
-            distance_computer = car_obs_t::distance;
-        } else {
+        // } else 
+        // if (system_type == "quadrotor_obs") {
+        //     system = new quadrotor_obs_t(obs_list, width);
+        //     distance_computer = quadrotor_obs_t::distance;
+        // } else 
+        if (system_type == "quadrotor_voxblox"){
+            system = new quadrotor_voxblox_t(voxblox_server_.getEsdfMapPtr()->getEsdfLayerPtr());
+        }
+         else {
             throw std::runtime_error("undefined system");
         }
         // std::cout <<system_type<<std::endl;
@@ -170,57 +213,58 @@ public:
             mean_control[ui] = mean_control_ref[ui];
             std_control[ui] = std_control_ref[ui];
         }
-        if (solver_type == "cem_cuda")
-        {
-            // see what system we are using
-            if (system_type == "acrobot_obs")
-            {
-                cem.reset(
-                    new trajectory_optimizers_acrobot::CEM_CUDA_acrobot(
-                        system, np, ns, nt,               
-                        ne, converge_r, obs_list, 
-                        mean_control, std_control, 
-                        mu_t, std_t, t_max, 
-                        dt, loss_weights, max_it, verbose, step_size)
-                );
-            }
-            else if (system_type == "cartpole_obs")
-            {
-                cem.reset(
-                    new trajectory_optimizers_cartpole::CEM_CUDA_cartpole(
-                        system, np, ns, nt,               
-                        ne, converge_r, obs_list, 
-                        mean_control, std_control, 
-                        mu_t, std_t, t_max, 
-                        dt, loss_weights, max_it, verbose, step_size)
-                );
-            }
-            else if (system_type == "car_obs")
-            {
-                cem.reset(
-                    new trajectory_optimizers_car::CEM_CUDA_car(
-                        system, np, ns, nt,               
-                        ne, converge_r, obs_list, 
-                        mean_control, std_control, 
-                        mu_t, std_t, t_max, 
-                        dt, loss_weights, max_it, verbose, step_size)
-                );
-            }
-            else if (system_type == "quadrotor_obs")
-            {
-                cem.reset(
-                    new trajectory_optimizers_quadrotor::CEM_CUDA_quadrotor(
-                        system, np, ns, nt,               
-                        ne, converge_r, obs_list, 
-                        mean_control, std_control, 
-                        mu_t, std_t, t_max, 
-                        dt, loss_weights, max_it, verbose, step_size)
-                );
-            }
+        // if (solver_type == "cem_cuda")
+        // {
+        //     // see what system we are using
+        //     if (system_type == "acrobot_obs")
+        //     {
+        //         cem.reset(
+        //             new trajectory_optimizers_acrobot::CEM_CUDA_acrobot(
+        //                 system, np, ns, nt,               
+        //                 ne, converge_r, obs_list, 
+        //                 mean_control, std_control, 
+        //                 mu_t, std_t, t_max, 
+        //                 dt, loss_weights, max_it, verbose, step_size)
+        //         );
+        //     }
+        //     else if (system_type == "cartpole_obs")
+        //     {
+        //         cem.reset(
+        //             new trajectory_optimizers_cartpole::CEM_CUDA_cartpole(
+        //                 system, np, ns, nt,               
+        //                 ne, converge_r, obs_list, 
+        //                 mean_control, std_control, 
+        //                 mu_t, std_t, t_max, 
+        //                 dt, loss_weights, max_it, verbose, step_size)
+        //         );
+        //     }
+        //     else if (system_type == "car_obs")
+        //     {
+        //         cem.reset(
+        //             new trajectory_optimizers_car::CEM_CUDA_car(
+        //                 system, np, ns, nt,               
+        //                 ne, converge_r, obs_list, 
+        //                 mean_control, std_control, 
+        //                 mu_t, std_t, t_max, 
+        //                 dt, loss_weights, max_it, verbose, step_size)
+        //         );
+        //     }
+        //     else if (system_type == "quadrotor_obs")
+        //     {
+        //         cem.reset(
+        //             new trajectory_optimizers_quadrotor::CEM_CUDA_quadrotor(
+        //                 system, np, ns, nt,               
+        //                 ne, converge_r, obs_list, 
+        //                 mean_control, std_control, 
+        //                 mu_t, std_t, t_max, 
+        //                 dt, loss_weights, max_it, verbose, step_size)
+        //         );
+        //     }
 
-        }
+        // }
         
-        else if (solver_type == "cem")
+        // else 
+        if (solver_type == "cem")
         {
              cem.reset(
                  new trajectory_optimizers::CEM(
@@ -236,7 +280,7 @@ public:
         // std::cout <<"cem"<<std::endl;
        
         planner.reset(
-            new deep_smp_mpc_sst_t(
+            new mpc_mpnet_t(
                     &start_state(0), &goal_state(0), goal_radius,
                     system->get_state_bounds(),
                     system->get_control_bounds(),
@@ -253,7 +297,7 @@ public:
         delete mean_control;
         delete std_control;
     }
-    ~DSSTMPCWrapper(){
+    ~MPCMPNetWrapper(){
         delete system;
         cem.reset();
         mpnet.reset();
@@ -571,7 +615,7 @@ protected:
     std::unique_ptr<networks::mpnet_cost_t> mpnet;
     // std::unique_ptr<networks::mpnet_cost_t> mpnet;
 
-    std::unique_ptr<deep_smp_mpc_sst_t> planner;
+    std::unique_ptr<mpc_mpnet_t> planner;
     sst_node_t* nearest;
     std::vector<std::vector<double>> obs_list;
     double dt;
@@ -589,7 +633,7 @@ private:
 
 PYBIND11_MODULE(_deep_smp_module, m) {
     m.doc() = "Python wrapper for deep smp planners";
-    py::class_<DSSTMPCWrapper>(m, "DSSTMPCWrapper")
+    py::class_<MPCMPNetWrapper>(m, "MPCMPNetWrapper")
         .def(py::init<
             std::string,
             std::string,
@@ -632,28 +676,28 @@ PYBIND11_MODULE(_deep_smp_module, m) {
             "weights_array"_a=py::safe_array<double>(),
             "obs_voxel_array"_a=py::safe_array<double>()
         )
-        .def("steer", &DSSTMPCWrapper::steer,
+        .def("steer", &MPCMPNetWrapper::steer,
             "start_array"_a,
              "sample_array"_a
         )
-         .def("steer_sst", &DSSTMPCWrapper::steer_sst,
+         .def("steer_sst", &MPCMPNetWrapper::steer_sst,
             "min_time_steps"_a,
              "max_time_steps"_a,
              "integration_step"_a
         )      
-         .def("steer_batch", &DSSTMPCWrapper::steer_batch,
+         .def("steer_batch", &MPCMPNetWrapper::steer_batch,
             "start_array"_a,
              "sample_array"_a,
              "num_of_problems"_a
         )       
-        .def("neural_sample", &DSSTMPCWrapper::neural_sample,
+        .def("neural_sample", &MPCMPNetWrapper::neural_sample,
             "state_array"_a,
             "refine"_a=false, 
             "refine_threshold"_a=0.2, 
             "using_one_step_cost"_a=false, 
             "cost_reselection"_a=false
         )
-        .def("neural_sample_batch", &DSSTMPCWrapper::neural_sample_batch,
+        .def("neural_sample_batch", &MPCMPNetWrapper::neural_sample_batch,
             "state_array"_a,
             "refine"_a=false, 
             "refine_threshold"_a=0.2, 
@@ -661,29 +705,29 @@ PYBIND11_MODULE(_deep_smp_module, m) {
             "cost_reselection"_a=false,
             "num_of_problems"_a
         )
-        .def("step", &DSSTMPCWrapper::step,
+        .def("step", &MPCMPNetWrapper::step,
             "min_time_steps"_a,
             "max_time_steps"_a,
             "integration_step"_a
         )
-        .def("mpc_step", &DSSTMPCWrapper::mpc_step,
+        .def("mpc_step", &MPCMPNetWrapper::mpc_step,
             "integration_step"_a
         )
-        .def("nearest_vertex", &DSSTMPCWrapper::nearest_vertex,
+        .def("nearest_vertex", &MPCMPNetWrapper::nearest_vertex,
             "sample_state_array"_a
         )
-        .def("add_to_tree", &DSSTMPCWrapper::add_to_tree,
+        .def("add_to_tree", &MPCMPNetWrapper::add_to_tree,
             "sample_state_array"_a,
             "duration"_a
         )
-        .def("neural_step", &DSSTMPCWrapper::neural_step,
+        .def("neural_step", &MPCMPNetWrapper::neural_step,
             "refine"_a=false,
             "refine_threshold"_a=0,
             "using_one_step_cost"_a=false,
             "cost_reselection"_a=false,
             "goal_bias"_a=0
         )
-        .def("deep_smp_step", &DSSTMPCWrapper::deep_smp_step,
+        .def("deep_smp_step", &MPCMPNetWrapper::deep_smp_step,
             "refine"_a, 
             "refine_threshold"_a, 
             "using_one_step_cost"_a,
@@ -691,7 +735,7 @@ PYBIND11_MODULE(_deep_smp_module, m) {
             "goal_bias"_a=0,
             "NP"_a=1
         )
-        .def("deep_smp_step_batch", &DSSTMPCWrapper::deep_smp_step_batch,
+        .def("deep_smp_step_batch", &MPCMPNetWrapper::deep_smp_step_batch,
             "refine"_a, 
             "refine_threshold"_a, 
             "using_one_step_cost"_a,
@@ -699,7 +743,7 @@ PYBIND11_MODULE(_deep_smp_module, m) {
             "goal_bias"_a=0,
             "NP"_a=1
         )
-        .def("neural_step_batch", &DSSTMPCWrapper::neural_step_batch,
+        .def("neural_step_batch", &MPCMPNetWrapper::neural_step_batch,
             "refine"_a=false,
             "refine_threshold"_a=0,
             "using_one_step_cost"_a=false,
@@ -707,7 +751,7 @@ PYBIND11_MODULE(_deep_smp_module, m) {
             "goal_bias"_a=0,
             "num_of_problem"_a=1
         )
-        .def("get_solution", &DSSTMPCWrapper::get_solution)
-        .def("get_number_of_nodes", &DSSTMPCWrapper::get_number_of_nodes)
+        .def("get_solution", &MPCMPNetWrapper::get_solution)
+        .def("get_number_of_nodes", &MPCMPNetWrapper::get_number_of_nodes)
         ;
 }

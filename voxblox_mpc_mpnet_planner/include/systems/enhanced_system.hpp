@@ -25,7 +25,7 @@
  * TODO: This currently includes visualization abilities, but it should be moved out
  *
  */
-struct enhanced_system_interface : system_interface {
+struct enhanced_system_interface {
     /**
 	 * @brief Performs a local propagation using simple numerical integration.
 	 * @details Performs a local propagation using simple numerical integration.
@@ -56,17 +56,6 @@ struct enhanced_system_interface : system_interface {
         const double* start_state, const double* goal_state, unsigned int state_dimension) = 0;
     */
 
-
-    /**
-     * @brief Creates a point in image space corresponding to a given state.
-     * @details Creates a point in image space corresponding to a given state.
-     *
-     * @param state The state in the system's space.
-     * @param dims The size of the destination image.
-     *
-     * @return A point in image space.
-     */
-    virtual std::tuple<double, double> visualize_point(const double* state, unsigned int state_dimension) const = 0;
 
     /**
      * @brief Visualize the obstacles for this system.

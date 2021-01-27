@@ -39,3 +39,15 @@ voxblox_sst_planner/maps/**
 
 #ignore python related caches
 **/.ipynb_checkpoints/
+
+#ignore pytorch
+**/*.pth
+**/*.pt
+
+#ignore python stuff
+**/*.pyc
+**/output/
+
+**/*.npy
+
+voxblox_mpc_mpnet_planner/deps/

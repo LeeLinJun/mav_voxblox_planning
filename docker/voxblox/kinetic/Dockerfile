@@ -28,4 +28,5 @@ RUN chmod u+x ./install-ompl-ubuntu.sh && ./install-ompl-ubuntu.sh --app
 #Run wstool init . ./voxblox/voxblox_ssh.rosinstall && \
 #wstool update &&\
 #catkin build voxblox_ros
-RUN ln -s /usr/local/include/ompl-1.5/ompl /usr/include/ && ln -s /usr/local/libompl* /usr/lib/
+RUN ln -s /usr/local/include/ompl-1.5/ompl /usr/include/ && ln -s /usr/local/lib/libompl* /usr/lib/
+

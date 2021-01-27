@@ -10,20 +10,52 @@
  * https://ompl.kavrakilab.org/classompl_1_1app_1_1QuadrotorPlanning.html
  */
 
-#ifndef SPARSE_QUADROTOR_OBS_HPP
-#define SPARSE_QUADROTOR_OBS_HPP
+#ifndef QUADROTOR_VOXBLOX_HPP
+#define QUADROTOR_VOXBLOX_HPP
 #include <cstdlib>
 #include <algorithm>
 #include <cmath>
 #include <string>
 #include "systems/enhanced_system.hpp"
-#define frame_size 0.25
 #include <cstdio>
 
-class quadrotor_obs_t : public enhanced_system_t
+#include <voxblox/core/esdf_map.h>
+#include <voxblox/core/tsdf_map.h>
+#include <voxblox/integrator/integrator_utils.h>
+#include <voxblox/utils/planning_utils.h>
+
+#define EPS 2.107342e-08
+#define MAX_QUATERNION_NORM_ERROR 1e-9
+
+class quadrotor_voxblox_t : public enhanced_system_t
 {
 public:
-	quadrotor_obs_t(){
+	quadrotor_voxblox_t(
+		double MIN_X, double MAX_X, 
+		double MIN_Y, double MAX_Y, 
+		double MIN_Z, double MAX_Z, 
+		double MIN_V, double MAX_V, 
+		double MIN_W, double MAX_W, 
+		double MIN_C1, double MAX_C1, 
+		double MIN_C, double MAX_C, 
+		double integration_step,
+		voxblox::Layer<voxblox::EsdfVoxel>* esdf_layer,
+		double robot_radius)
+		: MIN_X(MIN_X), MAX_X(MAX_X),
+		  MIN_Y(MIN_Y), MAX_Y(MAX_Y),
+		  MIN_Z(MIN_Z), MAX_Z(MAX_Z),
+		  MIN_V(MIN_V), MAX_V(MAX_V),
+		  MIN_W(MIN_W), MAX_W(MAX_W),
+		  MIN_C1(MIN_C1), MAX_C1(MAX_C1),
+		  MIN_C(MIN_C), MAX_C(MAX_C),
+		  integration_step(integration_step),
+		  interpolator_(esdf_layer),
+		  robot_radius(robot_radius) {
+		initialize_system();
+		voxel_size_ = esdf_layer->voxel_size();
+	}
+
+	void initialize_system(){
 		state_dimension = 13;
 		control_dimension = 4;
 		temp_state = new double[state_dimension]();
@@ -32,30 +64,14 @@ public:
 		u = new double[control_dimension]();
 		qomega = new double[4]();
 		validity = true;
-	}
-	quadrotor_obs_t(std::vector<std::vector<double>> _obs_list, double width){
-		state_dimension = 13;
-		control_dimension = 4;
-		temp_state = new double[state_dimension]();
-		deriv = new double[state_dimension]();
-
-		u = new double[control_dimension]();
-		qomega = new double[4]();
-		validity = true;
-		frame = {{frame_size, 0, 0},
-				 {0, frame_size, 0},
-				 {-frame_size, 0, 0},
-				 {0, -frame_size, 0}};
-		// copy the items from _obs_list to obs_list
-		for(unsigned int oi = 0; oi < _obs_list.size(); oi++){
-			std::vector<double> min_max_i = {_obs_list.at(oi).at(0) - width / 2, _obs_list.at(oi).at(0) + width / 2,
-											 _obs_list.at(oi).at(1) - width / 2, _obs_list.at(oi).at(1) + width / 2,
-											 _obs_list.at(oi).at(2) - width / 2, _obs_list.at(oi).at(2) + width / 2};// size = 6
-			this -> obs_min_max.push_back(min_max_i); // size = n_o (* 6)
-		}
+		MIN_Q = -1;
+		MAX_Q = 1;
+		MASS_INV = 1; 
+		BETA = 1;
 	}
 
-	virtual ~quadrotor_obs_t(){
+
+	virtual ~quadrotor_voxblox_t(){
 		delete[] temp_state;
 		delete[] deriv;
 		delete[] qomega;
@@ -85,10 +101,7 @@ public:
 	 */
 	virtual bool valid_state();
 	
-	/**
-	 * @copydoc enhanced_system_t::visualize_point(double*, svg::Dimensions)
-	 */
-	std::tuple<double, double> visualize_point(const double* state, unsigned int state_dimension) const override;
+
 
 	/**
 	 * enforce bounds for quaternions
@@ -140,9 +153,22 @@ protected:
 	double *u;
     double *qomega;
 	bool validity = true;
-	std::vector<std::vector<double>> frame;
-	std::vector<std::vector<double>> obs_min_max;
-
+	double robot_radius;
+	double MIN_X, MAX_X, MIN_Y, MAX_Y, MIN_Z, MAX_Z,
+		   MIN_Q, MAX_Q,
+		   MIN_V, MAX_V,
+		   MIN_W, MAX_W, 
+ 
+		   MASS_INV, 
+		   BETA,
+		   MIN_C1,
+		   MAX_C1,
+		   MIN_C,
+		   MAX_C,
+		   integration_step;
+	constexpr static double g = 9.81;
+	double voxel_size_;
+	voxblox::Interpolator<voxblox::EsdfVoxel> interpolator_;
 
 };
 #endif

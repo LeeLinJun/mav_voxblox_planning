@@ -2,7 +2,6 @@
 #define MPNET_COST_HPP
 
 #include "networks/mpnet.hpp"
-#include "systems/enhanced_system.hpp"
 
 namespace networks{
     class mpnet_cost_t : public mpnet_t

@@ -190,22 +190,7 @@ class VoxbloxMotionValidator : public base::MotionValidator {
                            std::pair<base::State*, double>& last_valid) const {
     Eigen::Vector3d start = omplToEigen(s1);
     Eigen::Vector3d goal = omplToEigen(s2);
-    // OMPL_INFORM("origin:%f\t%f\t%f\t\tstart:%f\t%f\t%f\t",
-    //   start.x(),
-    //   start.y(),
-    //   start.z(),
-    //   goal.x(),
-    //   goal.y(),
-    //   goal.z());
-    // OMPL_INFORM("origin:%f\t%f\t%f\t%f\t%f\t%f\t%f\n",
-    //   s1->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getX(),
-    //   s1->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getY(),
-    //   s1->as<base::CompoundStateSpace::StateType>()->as<StateSpace::StateType>(0)->getZ(),
-    //   s1->as<base::CompoundStateSpace::StateType>()->as<base::SO3StateSpace::StateType>(1)->x,
-    //   s1->as<base::CompoundStateSpace::StateType>()->as<base::SO3StateSpace::StateType>(1)->y,
-    //   s1->as<base::CompoundStateSpace::StateType>()->as<base::SO3StateSpace::StateType>(1)->z,
-    //   s1->as<base::CompoundStateSpace::StateType>()->as<base::SO3StateSpace::StateType>(1)->w);
-      
+   
     double voxel_size = validity_checker_->voxel_size();
 
     voxblox::Point start_scaled, goal_scaled;
@@ -225,20 +210,8 @@ class VoxbloxMotionValidator : public base::MotionValidator {
       Eigen::Vector3d pos = global_index.cast<double>() * voxel_size;
       bool collision =
           validity_checker_->checkCollisionWithRobotAtVoxel(global_index);
-      
-      // OMPL_INFORM("%d\n",  collision);
-
       if (collision) {
-        // if (last_valid.first != nullptr) {
-        //   ompl::base::ScopedState<ompl::mav::StateSpace> last_valid_state(
-        //       si_->getStateSpace());
-        //   last_valid_state->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->setX(pos.x());
-        //   last_valid_state->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->setY(pos.y());
-        //   last_valid_state->as<ompl::base::CompoundState>()->as<ompl::mav::StateSpace::StateType>(0)->setZ(pos.z());
-        //   si_->copyState(last_valid.first, last_valid_state.get());
-        // }
-
-        // last_valid.second = static_cast<double>(i / indices.size());
+       
         return false;
       }
     }

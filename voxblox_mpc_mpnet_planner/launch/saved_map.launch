@@ -1,0 +1,67 @@
+<launch>
+  <arg name="voxblox_path" default="/root/catkin_ws/src/mav_voxblox_planning/voxblox_sst_planner/maps/machine_hall/voxblox/rs_esdf_0.10.voxblox"  />
+  <arg name="frame_id" default="map" />
+
+  <node name="voxblox_mpc_mpnet_planner" pkg="voxblox_mpc_mpnet_planner" type="voxblox_mpc_mpnet_node" output="screen">
+    <param name="voxblox_path" value="$(arg voxblox_path)" />
+    <param name="visualize" value="true" />
+    <param name="robot_radius" value="0.25" />
+    <param name="tsdf_voxel_size" value="0.10" />
+    <param name="tsdf_voxels_per_side" value="16" />
+    <param name="update_mesh_every_n_sec" value="0.0" />
+    <param name="num_seconds_to_plan" value="0.1" />
+    <param name="frame_id" value="$(arg frame_id)" />
+    <param name="world_frame" value="$(arg frame_id)" />
+    <param name="trust_approx_solution" value="true" />
+    <param name="publish_traversable" value="true" />
+    <param name="split_at_collisions" value="true" />
+    <param name="optimize_time" value="true" />
+    <param name="verbose" value="false" />
+    <param name="do_smoothing" value="false"/>
+
+    <param name="step_size" value="0.02"/>
+    <param name="goal_radius" value="2.5"/>
+
+    <param name="min_rotate_control" value="-1.0"/>
+    <param name="max_rotate_control" value="1.0"/>
+    <param name="min_z_control" value="-15.0"/>
+    <param name="max_z_control" value="-5.0"/>
+    <param name="min_vel" value="-1.0"/>
+    <param name="max_vel" value="1.0"/>
+    <param name="min_omega" value="-1.0"/>
+    <param name="min_omega" value="1.0"/>
+
+
+    <param name="random_seed" value="0"/>
+    <param name="sst_delta_near" value="0.1"/>
+    <param name="sst_delta_drain" value="0.1"/>
+    <param name="shm_max_step" value="20"/>
+   
+    <param name="cem_ns" value="32"/>
+    <param name="cem_nt" value="1"/>
+    <param name="cem_ne" value="4"/>
+    <param name="cem_max_it" value="5"/>
+    <param name="cem_converge_r" value="1e-10"/>
+
+    <param name="cem_mu_t" value="0.05"/>
+    <param name="cem_std_t" value="0.25"/>
+
+    <param name="cem_t_max" value="1"/>
+    <param name="cem_mean_controlz" value="-10"/>
+    <param name="cem_mean_controlr" value="0"/>
+    <param name="cem_std_controlz" value="5"/>
+    <param name="cem_std_controlr" value="1"/>
+    <param name="cem_opt_step_size" value="1"/>
+
+
+    <param name="mpnet_num_sample" value="1"/>
+    <param name="mpnet_device_id" value="cuda:0"/>
+    <param name="mpnet_path" 
+      value="/root/catkin_ws/src/mav_voxblox_planning/voxblox_mpc_mpnet_planner/model/export/output/mpnet.pt"/>
+    <param name="mpnet_dnet_path" value=""/>
+
+
+  </node>
+<!-- 
+ <node type="rviz" name="rviz" pkg="rviz" /> -->
+</launch>

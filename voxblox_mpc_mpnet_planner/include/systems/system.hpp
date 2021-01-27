@@ -42,16 +42,6 @@ struct system_interface {
         const double* start_state, unsigned int state_dimension,
         const double* control, unsigned int control_dimension,
         int num_steps, double* result_state, double integration_step) = 0;
-    /**
-     * @brief Creates a point in image space corresponding to a given state.
-     * @details Creates a point in image space corresponding to a given state.
-     *
-     * @param state The state in the system's space.
-     * @param dims The size of the destination image.
-     *
-     * @return A point in image space.
-     */
-    virtual std::tuple<double, double> visualize_point(const double* state, unsigned int state_dimension) const = 0;
 
     /**
      * @brief Visualize the obstacles for this system.

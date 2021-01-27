@@ -1,7 +1,4 @@
-#ifndef MPNET_HPP
 #include "networks/mpnet.hpp"
-#endif
-#include <string>
 
 namespace networks{
     mpnet_t::mpnet_t(std::string network_weights_path, std::string device_id){

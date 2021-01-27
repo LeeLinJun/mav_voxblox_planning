@@ -14,11 +14,14 @@
   <run_depend>mav_planning_benchmark</run_depend>
   <run_depend>mav_planning_common</run_depend>
   <run_depend>mav_planning_rviz</run_depend>
-  <run_depend>voxblox_loco_planner</run_depend>
+  <!-- <run_depend>voxblox_loco_planner</run_depend> -->
   <run_depend>voxblox_rrt_planner</run_depend>
+  <!-- <run_depend>voxblox_skeleton</run_depend> -->
+  <!-- <run_depend>voxblox_skeleton_planner</run_depend> -->
+  
   <run_depend>voxblox_sst_planner</run_depend>
-  <run_depend>voxblox_skeleton</run_depend>
-  <run_depend>voxblox_skeleton_planner</run_depend>
+  <run_depend>voxblox_mpc_mpnet_planner</run_depend>
+
 
   <export>
     <metapackage/>

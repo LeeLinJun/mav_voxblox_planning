@@ -1,7 +1,4 @@
-#ifndef MPNET_COST_HPP
 #include "networks/mpnet_cost.hpp"
-#endif
-#include <string>
 
 // #define DEBUG
 namespace networks{
@@ -58,21 +55,27 @@ namespace networks{
             goal_tensor[0][si] = normalized_goal[si]; 
         }
         
-        at::Tensor state_tensor_expand = state_tensor.repeat({num_sample, 1}).to(torch::Device(device_id));
-        at::Tensor goal_tensor_expand = goal_tensor.repeat({num_sample, 1}).to(torch::Device(device_id));
+        torch::Tensor state_tensor_expand = state_tensor.repeat({num_sample, 1}).to(torch::Device(device_id));
+        torch::Tensor goal_tensor_expand = goal_tensor.repeat({num_sample, 1}).to(torch::Device(device_id));
 
-        torch::Tensor state_goal_tensor = at::cat({state_tensor_expand, goal_tensor_expand}, 1).to(torch::Device(device_id));
+        torch::Tensor state_goal_tensor = torch::cat({state_tensor_expand, goal_tensor_expand}, 1).to(torch::Device(device_id));
+        
+       
         // for multiple sampling
-        at::Tensor env_vox_tensor_expand = env_vox_tensor.repeat({num_sample, 1, 1, 1}).to(torch::Device(device_id));
+        torch::Tensor env_vox_tensor_expand = env_vox_tensor.repeat({num_sample, 1, 1, 1}).to(torch::Device(device_id));
+        // std::cout << "here" << std::endl;
+
         input_container.push_back(state_goal_tensor);
         input_container.push_back(env_vox_tensor_expand);
-        at::Tensor predicted_state_tensor = this -> forward(input_container).to(torch::Device(device_id));
+
+        // std::cout << "here2" << std::endl;
+        torch::Tensor predicted_state_tensor = this -> forward(input_container).to(torch::Device(device_id));
         unsigned int best_index;
 
         if(num_sample > 1){ // costnet goes here
-            at::Tensor cost_input;
-            at::Tensor predicted_costs;
-            at::Tensor best_index_tensor;
+            torch::Tensor cost_input;
+            torch::Tensor predicted_costs;
+            torch::Tensor best_index_tensor;
             torch::Tensor predicted_state_var;
             // at::Tensor current_cost_to_go;
             if(refine){
@@ -133,9 +136,9 @@ namespace networks{
             normalized_neural_sample_state[si] = predicted_state_tensor[best_index][si].item<double>();
         }
         system -> denormalize(normalized_neural_sample_state, neural_sample_state);
-        delete normalized_state;
-        delete normalized_goal;
-        delete normalized_neural_sample_state;
+        delete[] normalized_state;
+        delete[] normalized_goal;
+        delete[] normalized_neural_sample_state;
     }
 
     
