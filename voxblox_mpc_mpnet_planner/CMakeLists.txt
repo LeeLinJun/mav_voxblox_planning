@@ -10,6 +10,7 @@ set(TORCH_LIB "/root/catkin_ws/src/mav_voxblox_planning/voxblox_mpc_mpnet_planne
 set(CMAKE_PREFIX_PATH "${TORCH_LIB}/libtorch")
 # list(APPEND CMAKE_PREFIX_PATH "${TORCH_LIB}/libtorch")
 
+find_package(CUDA REQUIRED)
 
 find_package(Torch REQUIRED)
 # SET(CMAKE_BUILD_TYPE "Debug")

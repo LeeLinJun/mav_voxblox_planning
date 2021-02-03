@@ -41,9 +41,10 @@ voxblox_sst_planner/maps/**
 **/.ipynb_checkpoints/
 
 #ignore pytorch
-**/*.pth
-**/*.pt
-
+# **/*.pth
+# **/*.pt
+voxblox_mpc_mpnet_planner/model/output
+voxblox_mpc_mpnet_planner/model/dataset/data
 #ignore python stuff
 **/*.pyc
 **/output/
