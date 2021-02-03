@@ -47,7 +47,7 @@ voxblox_mpc_mpnet_planner/model/output
 voxblox_mpc_mpnet_planner/model/dataset/data
 #ignore python stuff
 **/*.pyc
-**/output/
+#**/output/
 
 **/*.npy
 
