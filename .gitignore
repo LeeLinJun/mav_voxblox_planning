@@ -44,7 +44,11 @@ voxblox_sst_planner/maps/**
 # **/*.pth
 # **/*.pt
 voxblox_mpc_mpnet_planner/model/output
-voxblox_mpc_mpnet_planner/model/dataset/data
+#voxblox_mpc_mpnet_planner/model/dataset/data
+voxblox_mpc_mpnet_planner/model/dataset/data/default
+voxblox_mpc_mpnet_planner/model/dataset/data/default_aug
+voxblox_mpc_mpnet_planner/model/dataset/data/default_norm
+voxblox_mpc_mpnet_planner/model/dataset/data/default_norm_aug
 #ignore python stuff
 **/*.pyc
 #**/output/
